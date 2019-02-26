@@ -1,0 +1,15 @@
+FROM java:openjdk-8u111-jre
+
+# Establish working dir and copy necessary files
+WORKDIR /my-javalin-app
+COPY my-javalin-app-SNAPSHOT.zip .
+
+RUN unzip my-javalin-app-SNAPSHOT.zip -d . && mv my-javalin-app-SNAPSHOT/* . && rm -rf my-javalin-app-SNAPSHOT
+
+EXPOSE 7000
+
+# This requires to have built the javalin app with gradle application module
+# To run only the jar:
+# ENTRYPOINT ["/usr/bin/java", "-jar", "my-javalin-app.jar"]
+ENTRYPOINT ["/bin/sh", "bin/run-javalin"]
+
