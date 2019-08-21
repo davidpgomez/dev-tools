@@ -1,0 +1,53 @@
+version: '3.2'
+
+services:
+  db: 
+    image: mysql:5
+    restart: always
+    ports:
+      - "3306:3306"
+    environment:
+      environment:
+      # This creates a db and user during startup
+      MYSQL_DATABASE: mydb
+      MYSQL_USER: itsme
+      MYSQL_PASSWORD: itsmeagain
+      MYSQL_RANDOM_ROOT_PASSWORD: '1'
+    # volume persistence
+    volumes:
+      - type: bind
+        source: /data/persistent/db
+        target: /var/lib/mysql
+    networks:
+      - mynet
+  api-app:
+    image: me/my-api:latest
+    restart: always
+    environment:
+      DB_URL: 'jdbc:mysql://db:3306/mydb'
+      DB_USER: itsme
+      DB_PASS: itsmeagain
+      SOME_LONG_ENVVAR: >-
+        this_env_var_is_so_so_long,_so_it_has_to
+        be_splitted_in_
+        some_lines
+    depends_on:
+      - db
+    networks:
+      - mynet
+  api-proxy:
+    image: haproxy:2.0.5-alpine
+    ports:
+      - "17000:7000"
+    # In Portainer, do this mapping manually using Secrets and Configs
+    # volumes:
+    #  - ./haproxy.cfg:/usr/local/etc/haproxy/haproxy.cfg:ro
+    #  - ./cert.pem:/etc/ssl/cert.pem:ro
+    depends_on:
+      - api-app
+    networks:
+      - mynet
+networks:
+   mynet:
+     driver: overlay
+
